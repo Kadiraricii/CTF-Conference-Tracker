@@ -20,5 +20,6 @@ COPY src/ src/
 COPY scripts/ scripts/
 COPY alembic.ini .
 COPY alembic/ alembic/
+COPY tests/ tests/
 
 ENV PYTHONPATH=/app
