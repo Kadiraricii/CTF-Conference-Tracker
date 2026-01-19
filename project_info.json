@@ -1,0 +1,17 @@
+{
+    "projectName": "CTF & Conference Tracker",
+    "category": "SecOps / OSINT",
+    "author": "Antigravity Agent",
+    "version": "1.0.0",
+    "description": "Automated CTF and conference tracking system",
+    "features": [
+        "CTFtime ingestion",
+        "REST API",
+        "ICS calendar feed",
+        "Self-check & Auto-test capabilities"
+    ],
+    "requirements": {
+        "os": "Docker-based",
+        "language": "Python 3.11"
+    }
+}
