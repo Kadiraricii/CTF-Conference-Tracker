@@ -18,13 +18,19 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 # Include Routers
 app.include_router(events.router, prefix="/api/events", tags=["events"])
 app.include_router(calendar.router, prefix="/calendar", tags=["calendar"])
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok", "project": settings.PROJECT_NAME}
+    from src.app.services.health import check_health_status
+    status = await check_health_status()
+    if status["overall"] != "PASS":
+         # In a real K8s probe we might return 500, but for now 200 with details is fine
+         pass
+    return status
 
 @app.get("/")
 async def root():
