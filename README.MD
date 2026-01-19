@@ -1,82 +1,102 @@
-# CTF & Conference Tracker
+# 🛡️ CyberTracker (Agentic SecOps Platform)
 
-A centralized intelligence platform for tracking global cybersecurity events (CTFs and Conferences).
-Built with **FastAPI**, **PostgreSQL**, **Redis/ARQ**, and **Telegram Notifications**.
+> **Next-Gen Intelligence Platform** for tracking Global CTFs & Security Conferences.
+> *Featuring a Dynamic Cyber-Themed Dashboard, AI-Powered Tagging, and Real-Time Alerts.*
 
-> **Project Status**: Phase 3 (Automation & Standards Implemented).
+![Status](https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge&logo=statuspage)
+![Stack](https://img.shields.io/badge/Stack-FastAPI_|_Docker_|_Redis-blue?style=for-the-badge&logo=docker)
+![UI](https://img.shields.io/badge/UI-Dynamic_Cyber_Theme-purple?style=for-the-badge&logo=tailwindcss)
 
-## 🚀 Quick Start
+---
 
-### Option A: Docker Compose (Preferred)
-The easiest way to run the full stack (API + Worker + DB + Redis).
+## 🌌 Dynamic User Experience (yeni)
 
+CyberTracker, sıradan bir liste görünümünün ötesine geçerek, siber güvenlik uzmanlarına **"Premium"** bir deneyim sunar.
+
+### 🎨 Cyber Dashboard & UI
+*   **Glassmorphism Estetiği:** Modern, yarı saydam kartlar ve bulanık arka plan efektleri.
+*   **Canlı Animasyonlar:**
+    *   🔴 **Pulse Effect**: Şu an devam eden ("Live") etkinlikler için kalp atışı animasyonu.
+    *   ✨ **Hover Effects**: Kart üzerine gelindiğinde 3D derinlik ve parlama efektleri.
+    *   🚀 **Smooth Transitions**: Sayfa geçişleri ve yüklemeler için akıcı animasyonlar.
+*   **Karanlık Mod (Dark Mode):** Göz yormayan, odaklanmayı artıran profesyonel renk paleti.
+
+### ⚡ İnteraktif Özellikler
+*   **🌍 Çoklu Dil Desteği:** Tek tıkla **Türkçe (TR) 🇹🇷** ve **İngilizce (EN) 🇺🇸** arasında anlık geçiş.
+*   **🔍 Instant Search:** Sayfa yenilemeden çalışan, nanosaniye hızında istemci taraflı arama ve filtreleme.
+*   **🏷️ Smart Tagging:** AI tarafından üretilen etiketler (Örn: *#Crypto*, *#Pwn*) ile içerik keşfi.
+
+---
+
+## 📖 Proje Hakkında (About)
+
+**CyberTracker**, dağınık kaynaklardan (CTFtime, RSS) veri toplayan, bunları yapay zeka ile zenginleştiren ve kullanıcıyı proaktif olarak bilgilendiren otonom bir sistemdir.
+
+### Temel Yetenekler
+1.  **Otonom Veri Toplama:** CTFtime ve Konferans kaynaklarını otomatik tarar.
+2.  **AI Analizi:** Etkinlik açıklamalarını analiz edip kategorize eder.
+3.  **Anlık Bildirimler:** Yeni fırsatları Telegram üzerinden haber verir.
+4.  **Self-Healing:** Kendi sağlığını (`manage.py self-check`) sürekli kontrol eder.
+
+---
+
+## 🚀 Hızlı Başlangıç (Quick Start)
+
+Proje **Docker** ile saniyeler içinde ayağa kalkar.
+
+### 1. Kurulum
 ```bash
-# 1. Setup Environment
-./scripts/setup.sh    # Creates .env from example
+git clone https://github.com/your-username/CTF-Conference-Tracker.git
+cd CTF-Conference-Tracker
+cp .env.example .env
+```
 
-# 2. Build & Run
+### 2. Çalıştırma
+```bash
 docker-compose -f deploy/docker-compose.yml up --build -d
-
-# 3. Access
-# API Docs: http://localhost:8000/docs
 ```
 
-### Option B: Local Development (Virtualenv)
-If you want to run services locally (requires Postgres/Redis installed).
+### 3. Erişim
+| Arayüz | URL | Özellik |
+| :--- | :--- | :--- |
+| **Dynamic Dashboard** | `http://localhost:8000` | 🎨 Cyber UI, Animations, TR/EN Support |
+| **API Docs** | `http://localhost:8000/docs` | 📄 Swagger / OpenAPI |
+| **Calendar Feed** | `http://localhost:8000/calendar/ctf.ics` | 📅 iCal Subscription |
 
-```bash
-# 1. Setup Environment
-./scripts/setup.sh    # Answer 'y' to create venv
+---
 
-# 2. Activate
-source venv/bin/activate
+## 🧠 Nasıl Çalışır? (Architecture)
 
-# 3. Run API
-uvicorn src.main:app --reload
+Sistem **Modular Monolith** mimarisindedir ve tamamen asenkron (Async) çalışır.
 
-# 4. Run Worker (in another terminal)
-arq src.app.workers.tasks.WorkerSettings
+```mermaid
+graph LR
+    Scrapers[🕷️ Scrapers] -->|Raw Data| Norm[⚡ Normalization]
+    Norm -->|Text| AI[🤖 AI Tagging]
+    AI --> DB[(Postgres)]
+    DB --> API[FastAPI]
+    API --> UI[🎨 Dynamic Dashboard]
+    Norm --> Notify[🔔 Telegram Bot]
 ```
 
-## 🛠 Management CLI
-The project includes a `manage.py` script for automation and maintenance.
+---
 
-**Inside Container:**
-```bash
-docker exec -it deploy-backend-1 python scripts/manage.py [COMMAND]
-```
+## 📂 Proje Yapısı
 
-**Commands:**
-- `self-check`: Verify connections to DB, Redis, and API.
-- `test`: Run the automated Pytest suite.
-- `init-db`: Initialize database tables manually.
-- `trigger-ingest`: Manually trigger the CTFtime scraper job.
-- `run-worker`: Start the ARQ worker process.
+*   `src/app/static/`: **Dynamic Frontend** (HTML/Alpine.js/Tailwind).
+*   `src/app/workers/`: **Scrapers** (CTFtime, RSS).
+*   `src/app/services/`: **Intelligence** (AI, Notifications).
+*   `tests/`: **Automation** (Pytest).
+*   `docs/`: **Audit & Plans**.
 
-## 🏗 Architecture
+---
 
-- **Backend**: Python 3.11 + FastAPI
-- **Database**: PostgreSQL (Async SQLAlchemy)
-- **Queue**: ARQ (Async Redis Queue) for scrapers
-- **Notifications**: Telegram Bot API
-- **Automation**: Self-healing checks and regression tests.
+## 🤝 Katkıda Bulunma
 
-## 📂 Repository Structure
+1.  Forklayın.
+2.  Feature branch oluşturun (`git checkout -b feature/dynamic-ui`).
+3.  PR gönderin.
 
-```text
-├── deploy/           # Docker configs
-├── docs/             # Project documentation
-├── researches/       # Deep dive analysis artifacts
-├── scripts/          # Automation (setup.sh, manage.py)
-├── src/
-│   ├── app/
-│   │   ├── api/      # REST Endpoints
-│   │   ├── core/     # Config & Settings
-│   │   ├── db/       # Models & Session
-│   │   └── workers/  # ARQ Tasks & Scrapers
-│   └── main.py       # Entrypoint
-├── project_info.json # Project metadata
-```
+---
 
-## 🤝 Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md) for style guides and scraper development instructions.
+**Lisans:** MIT
