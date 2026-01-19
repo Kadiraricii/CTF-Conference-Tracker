@@ -1,9 +1,9 @@
-# CTF & Conference Tracker (MVP)
+# CTF & Conference Tracker
 
 A centralized intelligence platform for tracking global cybersecurity events (CTFs and Conferences).
 Built with **FastAPI**, **PostgreSQL**, **Redis/ARQ**, and **Telegram Notifications**.
 
-> **Project Status**: Phase 1 MVP (API + CLI Only).
+> **Project Status**: Phase 3 (Automation & Standards Implemented).
 
 ## 🚀 Quick Start
 
@@ -38,18 +38,36 @@ uvicorn src.main:app --reload
 arq src.app.workers.tasks.WorkerSettings
 ```
 
+## 🛠 Management CLI
+The project includes a `manage.py` script for automation and maintenance.
+
+**Inside Container:**
+```bash
+docker exec -it deploy-backend-1 python scripts/manage.py [COMMAND]
+```
+
+**Commands:**
+- `self-check`: Verify connections to DB, Redis, and API.
+- `test`: Run the automated Pytest suite.
+- `init-db`: Initialize database tables manually.
+- `trigger-ingest`: Manually trigger the CTFtime scraper job.
+- `run-worker`: Start the ARQ worker process.
+
 ## 🏗 Architecture
 
 - **Backend**: Python 3.11 + FastAPI
 - **Database**: PostgreSQL (Async SQLAlchemy)
 - **Queue**: ARQ (Async Redis Queue) for scrapers
 - **Notifications**: Telegram Bot API
+- **Automation**: Self-healing checks and regression tests.
 
 ## 📂 Repository Structure
 
 ```text
 ├── deploy/           # Docker configs
-├── scripts/          # Automation scripts
+├── docs/             # Project documentation
+├── researches/       # Deep dive analysis artifacts
+├── scripts/          # Automation (setup.sh, manage.py)
 ├── src/
 │   ├── app/
 │   │   ├── api/      # REST Endpoints
@@ -57,6 +75,7 @@ arq src.app.workers.tasks.WorkerSettings
 │   │   ├── db/       # Models & Session
 │   │   └── workers/  # ARQ Tasks & Scrapers
 │   └── main.py       # Entrypoint
+├── project_info.json # Project metadata
 ```
 
 ## 🤝 Contributing
