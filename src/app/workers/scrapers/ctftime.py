@@ -31,9 +31,12 @@ class CTFTimeScraper(BaseScraper):
             logger.info(f"Fetched {len(data)} events from API.")
             return data
 
+
     async def normalize_and_save(self, events_data: list):
-        """Normalize CTF/Conf data and upsert into DB."""
+        """Normalize CTF/Conf data and upsert into DB. Returns new (created) events."""
         count = 0
+        new_events = []
+        
         async with AsyncSessionLocal() as session:
             for item in events_data:
                 source_id = f"ctftime_{item['id']}"
@@ -51,6 +54,15 @@ class CTFTimeScraper(BaseScraper):
                     logger.error(f"Failed to parse dates for event {item.get('title')}: {item.get('start')}/{item.get('finish')}")
                     continue
 
+
+                # Auto-Tagging
+                from src.app.services.ai import AIService
+                tags = await AIService.generate_tags(item['title'], item.get('description', ''))
+                
+                # Update Meta
+                meta = item.copy()
+                meta['tags'] = tags
+
                 event_data = {
                     "source_id": source_id,
                     "title": item['title'],
@@ -62,7 +74,7 @@ class CTFTimeScraper(BaseScraper):
                     "start_time": start,
                     "end_time": end,
                     "weight": float(item.get('weight', 0)),
-                    "meta": item # Store raw payload
+                    "meta": meta # Store enriched payload
                 }
                 
                 if existing_event:
@@ -73,20 +85,28 @@ class CTFTimeScraper(BaseScraper):
                     # Create new
                     new_event = Event(**event_data)
                     session.add(new_event)
+                    new_events.append(new_event)
                 count += 1
             
             await session.commit()
-            logger.info(f"Synced {count} events from CTFtime.")
-            return count
+            logger.info(f"Synced {count} events from CTFtime. New: {len(new_events)}")
+            return new_events
 
 # ARQ Job Function
 async def ingest_ctftime_events(ctx, limit: int = 100):
+    from src.app.services.notifications import NotificationService
+    
     logger.info("Starting CTFtime Ingest Job")
     scraper = CTFTimeScraper()
     try:
         data = await scraper.fetch_events(limit=limit)
-        count = await scraper.normalize_and_save(data)
-        return f"Successfully ingested {count} events"
+        new_events = await scraper.normalize_and_save(data)
+        
+        if new_events:
+            logger.info(f"Sending notifications for {len(new_events)} new events.")
+            await NotificationService.notify_new_events(new_events)
+            
+        return f"Successfully ingested {len(data)} events ({len(new_events)} new)"
     except Exception as e:
         logger.error(f"Error during ingestion: {e}")
         raise e
