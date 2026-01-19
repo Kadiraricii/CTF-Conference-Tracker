@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTF & Conference Tracker - Product Spec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafaf9;
+            /* Stone-50 */
+            color: #334155;
+            /* Slate-700 */
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            /* Max width for larger screens */
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .nav-active {
+            border-bottom: 2px solid #0d9488;
+            /* Teal-600 */
+            color: #0f766e;
+            /* Teal-700 */
+            font-weight: 600;
+        }
+
+        .arch-box {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .arch-box:hover,
+        .arch-box.active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-color: #0d9488;
+        }
+
+        .timeline-node {
+            transition: all 0.3s ease;
+        }
+
+        .timeline-node:hover {
+            background-color: #f0fdfa;
+            /* Teal-50 */
+        }
+
+        /* Custom scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Utility for Diagram Arrows using CSS borders */
+        .arrow-right {
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 8px solid #d6d3d1;
+            /* stone-300 */
+        }
+
+        .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid #d6d3d1;
+            /* stone-300 */
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-slate-800 tracking-tight">Sec<span
+                            class="text-teal-600">Ops</span> Tracker</span>
+                    <span class="ml-3 px-2 py-1 text-xs font-semibold bg-stone-100 text-stone-600 rounded">Product Spec
+                        MVP</span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center" id="nav-container">
+                    <!-- Nav items injected via JS -->
+                </div>
+                <!-- Mobile menu button placeholder -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn"
+                        class="text-slate-600 hover:text-slate-800 focus:outline-none text-2xl px-2">
+                        ☰
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 p-4 shadow-lg">
+            <!-- Mobile nav items injected via JS -->
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- Dynamic View Container -->
+        <div id="app-view" class="space-y-8 animate-fade-in">
+            <!-- Content loaded via JS -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-stone-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <p class="text-stone-500 text-sm">Generated for Senior Cybersecurity Product Research</p>
+            <p class="text-stone-400 text-xs">Internal Confidential</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Data Store ---
+        const appData = {
+            metadata: {
+                role: "Senior Cybersecurity Product Researcher + OSINT/SecOps Engineer",
+                goal: "Design a CTF & Conference Tracker platform",
+                status: "Draft / MVP Design"
+            },
+            sources: [
+                { name: "CTFtime", type: "API", coverage: "Global CTFs", freq: "Daily", auth: "None", reliability: 95, notes: "Gold standard. GET /api/v1/events/" },
+                { name: "InfoSec Conferences", type: "GitHub/JSON", coverage: "Conferences", freq: "Weekly", auth: "None", reliability: 90, notes: "infosec-conferences repo" },
+                { name: "GitHub Search", type: "API", coverage: "Write-ups", freq: "Daily", auth: "OAuth", reliability: 85, notes: "Topic: ctf-writeup" },
+                { name: "Google Scholar", type: "Scrape", coverage: "Papers", freq: "Monthly", auth: "Strict", reliability: 60, notes: "For academic proceedings" },
+                { name: "YouTube Data API", type: "API", coverage: "Talks/Videos", freq: "Daily", auth: "Key", reliability: 90, notes: "Index DEFCON/BlackHat channels" },
+                { name: "Official Sites", type: "HTML/RSS", coverage: "Schedules", freq: "Yearly", auth: "High Variance", reliability: 50, notes: "Custom parsers needed" }
+            ],
+            architecture: {
+                components: [
+                    { id: "collector", label: "Collector Engine", tech: "Python + httpx", desc: "Runs asynchronously. Uses robust user-agents and exponential backoff. Respects ETag/Last-Modified headers to save bandwidth." },
+                    { id: "queue", label: "Task Queue", tech: "Celery + Redis", desc: "Orchestrates scrapes. Triggers 'fetch_ctftime' (6h) and 'fetch_github' (24h). Decouples ingestion from API, preventing bottlenecks." },
+                    { id: "api", label: "API Gateway", tech: "FastAPI (Python)", desc: "Strong typing with Pydantic. Handles client requests, search queries, and user preference logic." },
+                    { id: "db", label: "Database", tech: "PostgreSQL + JSONB", desc: "Stores Events, Users, and Resources. JSONB allows flexible schema for variable event metadata (e.g., disparate tag formats)." },
+                    { id: "frontend", label: "User Client", tech: "Next.js (SSR)", desc: "Server-side rendering for SEO. Never scrapes directly; consumes read-only API endpoints." }
+                ],
+                flow: "Sources -> Collector -> Queue -> DB -> API -> Client"
+            },
+            roadmap: [
+                { week: "Week 1", title: "Core Data Pipeline", tasks: ["Set up Postgres & FastAPI", "Build CTFtime collector", "Design DB Schema"] },
+                { week: "Week 2", title: "API & Basic Frontend", tasks: ["GET /events endpoint", "Basic Search", "Event Card UI", "Grid View"] },
+                { week: "Week 3", title: "Accounts & Personalization", tasks: ["OAuth (GitHub/Google)", "Favorites Feature", "ICS Feed Generator"] },
+                { week: "Week 4", title: "Enrichment & Polish", tasks: ["Resource Collector (Write-ups)", "Link Write-ups to Events", "Security Audit", "MVP Launch"] }
+            ],
+            schema: [
+                { table: "Events", fields: ["id (UUID)", "start_time (UTC)", "type (Enum)", "tags (Array)", "metadata (JSONB)"] },
+                { table: "Resources", fields: ["id (UUID)", "event_id (FK)", "resource_type (Enum)", "url", "verified (Bool)"] },
+                { table: "Users", fields: ["id (UUID)", "preferences (JSONB)", "notification_settings (JSONB)"] }
+            ]
+        };
+
+        // --- State Management ---
+        let currentTab = 'overview';
+        let selectedArchComponent = null;
+
+        // --- View Renderers ---
+
+        function renderNav() {
+            const tabs = [
+                { id: 'overview', label: 'Overview' },
+                { id: 'sources', label: 'Data Intelligence' },
+                { id: 'architecture', label: 'System Architecture' },
+                { id: 'logic', label: 'Core Logic & ETL' },
+                { id: 'roadmap', label: 'Execution & Roadmap' }
+            ];
+
+            const navContainer = document.getElementById('nav-container');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            let html = '';
+            let mobileHtml = '';
+
+            tabs.forEach(tab => {
+                const activeClass = currentTab === tab.id ? 'nav-active' : 'text-slate-500 hover:text-slate-700';
+                const mobileActiveClass = currentTab === tab.id ? 'bg-teal-50 text-teal-700' : 'text-slate-600';
+
+                html += `<button onclick="switchTab('${tab.id}')" class="${activeClass} px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">${tab.label}</button>`;
+                mobileHtml += `<button onclick="switchTab('${tab.id}')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium ${mobileActiveClass} hover:bg-stone-50 transition-colors">${tab.label}</button>`;
+            });
+
+            navContainer.innerHTML = html;
+            mobileMenu.innerHTML = mobileHtml;
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            renderNav();
+            renderContent();
+            // Close mobile menu if open
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        function renderContent() {
+            const container = document.getElementById('app-view');
+            container.innerHTML = ''; // Clear current content
+            window.scrollTo(0, 0);
+
+            switch (currentTab) {
+                case 'overview':
+                    renderOverview(container);
+                    break;
+                case 'sources':
+                    renderSources(container);
+                    break;
+                case 'architecture':
+                    renderArchitecture(container);
+                    break;
+                case 'logic':
+                    renderLogic(container);
+                    break;
+                case 'roadmap':
+                    renderRoadmap(container);
+                    break;
+            }
+        }
+
+        // --- Tab: Overview ---
+        function renderOverview(container) {
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in-up">
+                    <div class="space-y-6">
+                        <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                            <h1 class="text-3xl font-bold text-slate-800 mb-2">CTF & Conference Tracker</h1>
+                            <p class="text-lg text-stone-600 mb-4">A comprehensive platform specification for tracking global cybersecurity events, aggregating write-ups, and delivering personalized alerts.</p>
+                            <div class="flex flex-wrap gap-2 mb-6">
+                                <span class="bg-teal-100 text-teal-800 text-xs px-3 py-1 rounded-full font-medium">MVP Scope</span>
+                                <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full font-medium">FastAPI</span>
+                                <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-medium">Next.js</span>
+                                <span class="bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-medium">Postgres</span>
+                            </div>
+                            <p class="text-sm text-slate-500">
+                                This dashboard facilitates the exploration of the product requirements, from data ingestion strategies to the user interface architecture.
+                            </p>
+                            <div class="mt-8 flex gap-4">
+                                <button onclick="switchTab('sources')" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">Explore Sources</button>
+                                <button onclick="switchTab('roadmap')" class="bg-white border border-stone-300 hover:bg-stone-50 text-slate-700 px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">View Timeline</button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats Grid -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 text-center">
+                                <div class="text-3xl font-bold text-teal-600">4</div>
+                                <div class="text-xs text-stone-500 uppercase tracking-wide mt-1 font-bold">Weeks to MVP</div>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 text-center">
+                                <div class="text-3xl font-bold text-indigo-600">6+</div>
+                                <div class="text-xs text-stone-500 uppercase tracking-wide mt-1 font-bold">Data Sources</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Intro Text & Context -->
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200 flex flex-col justify-center">
+                        <h2 class="text-xl font-semibold text-slate-800 mb-4">Project Mission</h2>
+                        <p class="text-stone-600 leading-relaxed mb-4">
+                            The goal is to design a central hub for the InfoSec community. Current solutions are fragmented. This platform aggregates 
+                            <strong>CTF events</strong> (Capture The Flag) and <strong>Conferences</strong> (Black Hat, DEFCON) into a single, filterable interface.
+                        </p>
+                        <h3 class="font-medium text-slate-800 mt-6 mb-3">Key Features</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-teal-500 mr-2 font-bold">✓</span>
+                                <span class="text-sm text-stone-600"><strong>Aggregated Intelligence:</strong> Unified timeline of events from multiple APIs and scrapes.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-teal-500 mr-2 font-bold">✓</span>
+                                <span class="text-sm text-stone-600"><strong>Smart Archive:</strong> Indexing write-ups, slides, and videos linked to specific challenges.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-teal-500 mr-2 font-bold">✓</span>
+                                <span class="text-sm text-stone-600"><strong>Personalized Alerts:</strong> Notification logic for specific tags (e.g., "Web", "Pwn") and difficulty levels.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-teal-500 mr-2 font-bold">✓</span>
+                                <span class="text-sm text-stone-600"><strong>Calendar Integration:</strong> Passive subscription via ICS feeds for seamless scheduling.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Tab: Sources ---
+        function renderSources(container) {
+            container.innerHTML = `
+                <div class="mb-8 animate-fade-in-up">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Data Intelligence & Sourcing</h2>
+                    <p class="text-stone-600 max-w-3xl">
+                        The integrity of the platform relies on high-quality data ingestion. We prioritize official APIs to minimize maintenance overhead and legal risk, falling back to ethical scraping only when necessary. The chart below analyzes the reliability and update frequency of our target sources.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 animate-fade-in-up">
+                    <!-- Chart Section -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <h3 class="text-lg font-semibold text-slate-700 mb-4">Source Reliability Analysis</h3>
+                        <div class="chart-container">
+                            <canvas id="sourcesChart"></canvas>
+                        </div>
+                        <p class="text-xs text-stone-400 mt-4 text-center">Score calculated based on API availability, rate limits, and data stability.</p>
+                    </div>
+                    
+                    <!-- Strategy Card -->
+                    <div class="bg-teal-50 p-6 rounded-xl border border-teal-100">
+                        <h3 class="text-lg font-semibold text-teal-800 mb-3">Ingestion Strategy</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-teal-700">1. API First</h4>
+                                <p class="text-sm text-teal-900/80 mt-1">Always prefer official endpoints (e.g., CTFtime API). It's cleaner, faster, and less likely to break.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-teal-700">2. Ethical Scraping</h4>
+                                <p class="text-sm text-teal-900/80 mt-1">When scraping is needed (Google Scholar), use polite headers, respect <code>robots.txt</code>, and implement caching.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-teal-700">3. Normalization</h4>
+                                <p class="text-sm text-teal-900/80 mt-1">Convert all diverse formats into a unified internal schema immediately upon ingestion.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden animate-fade-in-up">
+                    <div class="px-6 py-4 border-b border-stone-200 bg-stone-50">
+                        <h3 class="text-lg font-semibold text-slate-700">Source Registry</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-stone-600">
+                            <thead class="bg-stone-100 text-stone-700 font-semibold border-b border-stone-200">
+                                <tr>
+                                    <th class="px-6 py-3 whitespace-nowrap">Source Name</th>
+                                    <th class="px-6 py-3 whitespace-nowrap">Type</th>
+                                    <th class="px-6 py-3 whitespace-nowrap">Content Coverage</th>
+                                    <th class="px-6 py-3 whitespace-nowrap">Update Freq</th>
+                                    <th class="px-6 py-3 whitespace-nowrap">Constraints</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-stone-100">
+                                ${appData.sources.map(s => `
+                                    <tr class="hover:bg-stone-50 transition-colors">
+                                        <td class="px-6 py-4 font-medium text-slate-800 whitespace-nowrap">${s.name}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 rounded text-xs border ${s.type.includes('API') ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'} font-semibold">${s.type}</span></td>
+                                        <td class="px-6 py-4 whitespace-nowrap">${s.coverage}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">${s.freq}</td>
+                                        <td class="px-6 py-4 text-xs max-w-xs truncate" title="${s.auth} - ${s.notes}">${s.auth}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            // Chart Initialization
+            setTimeout(() => {
+                const ctx = document.getElementById('sourcesChart').getContext('2d');
+                const labels = appData.sources.map(s => s.name);
+                const reliabilityData = appData.sources.map(s => s.reliability);
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Reliability Score (0-100)',
+                            data: reliabilityData,
+                            backgroundColor: reliabilityData.map(v => v > 80 ? '#0d9488' : v > 60 ? '#f59e0b' : '#ef4444'),
+                            borderRadius: 4,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    title: function (tooltipItems) {
+                                        const item = tooltipItems[0];
+                                        const label = item.chart.data.labels[item.dataIndex];
+                                        return Array.isArray(label) ? label.join(' ') : label;
+                                    },
+                                    label: function (context) {
+                                        const source = appData.sources[context.dataIndex];
+                                        return [`Reliability: ${source.reliability}`, `Type: ${source.type}`, `Freq: ${source.freq}`];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: { display: true, text: 'Reliability & Ease of Access' },
+                                grid: { color: '#f5f5f4' }
+                            },
+                            x: {
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }, 0);
+        }
+
+        // --- Tab: Architecture ---
+        function renderArchitecture(container) {
+            container.innerHTML = `
+                <div class="mb-8 animate-fade-in-up">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">System Architecture</h2>
+                    <p class="text-stone-600 max-w-3xl">
+                        The architecture is designed for <strong>decoupled ingestion</strong>. The frontend never scrapes directly. Instead, a background "Collector" engine fetches data, normalizes it, and places it into a task queue. This ensures the User API remains fast and responsive even during heavy data processing.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in-up">
+                    <!-- Interactive Diagram -->
+                    <div class="lg:col-span-2 space-y-4">
+                         <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200 relative overflow-hidden min-h-[450px] flex flex-col justify-center items-center select-none">
+                            
+                            <!-- Diagram Flex Layout -->
+                            <div class="flex flex-col md:flex-row items-center justify-between w-full max-w-2xl gap-4 md:gap-0 z-10">
+                                
+                                <!-- Source -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-24 h-24 bg-stone-50 border-2 border-stone-300 border-dashed rounded-lg flex items-center justify-center text-center text-xs text-stone-500 font-medium p-2">
+                                        External Sources
+                                    </div>
+                                    <!-- Mobile Down Arrow -->
+                                    <div class="md:hidden mt-2 arrow-down"></div>
+                                </div>
+
+                                <!-- Horizontal Arrow -->
+                                <div class="hidden md:flex flex-1 items-center justify-center px-2">
+                                    <div class="h-1 w-full bg-stone-300 relative"></div>
+                                    <div class="arrow-right"></div>
+                                </div>
+
+                                <!-- Collector (Clickable) -->
+                                <div onclick="showArchDetail('collector')" id="box-collector" class="arch-box w-32 h-24 bg-indigo-50 border-2 border-indigo-200 rounded-lg flex flex-col items-center justify-center text-center shadow-sm relative group z-20">
+                                    <div class="text-indigo-700 font-bold text-sm">Collector</div>
+                                    <div class="text-indigo-400 text-[10px] mt-1">(Engine)</div>
+                                    <span class="absolute -bottom-6 text-[10px] text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Click for details</span>
+                                </div>
+
+                                <!-- Horizontal Arrow -->
+                                <div class="hidden md:flex flex-1 items-center justify-center px-2">
+                                    <div class="h-1 w-full bg-stone-300 relative"></div>
+                                    <div class="arrow-right"></div>
+                                </div>
+                                <!-- Mobile Down Arrow -->
+                                <div class="md:hidden my-2 arrow-down"></div>
+
+                                <!-- Queue (Clickable) -->
+                                <div onclick="showArchDetail('queue')" id="box-queue" class="arch-box w-28 h-24 bg-amber-50 border-2 border-amber-200 rounded-lg flex flex-col items-center justify-center text-center shadow-sm relative group z-20">
+                                    <div class="text-amber-700 font-bold text-sm">Queue</div>
+                                    <div class="text-amber-500 text-[10px] mt-1">(Redis)</div>
+                                    <span class="absolute -bottom-6 text-[10px] text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Click info</span>
+                                </div>
+
+                                <!-- Horizontal Arrow -->
+                                <div class="hidden md:flex flex-1 items-center justify-center px-2">
+                                    <div class="h-1 w-full bg-stone-300 relative"></div>
+                                    <div class="arrow-right"></div>
+                                </div>
+                                <!-- Mobile Down Arrow -->
+                                <div class="md:hidden my-2 arrow-down"></div>
+
+                                <!-- DB (Clickable) -->
+                                <div onclick="showArchDetail('db')" id="box-db" class="arch-box w-28 h-28 rounded-full bg-slate-100 border-2 border-slate-300 flex flex-col items-center justify-center text-center shadow-sm relative group z-20">
+                                    <div class="text-slate-700 font-bold text-sm">Database</div>
+                                    <div class="text-slate-500 text-[10px] mt-1">(Postgres)</div>
+                                    <span class="absolute -bottom-6 text-[10px] text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Click info</span>
+                                </div>
+                            </div>
+
+                            <!-- Lower Tier -->
+                            <div class="flex flex-col md:flex-row items-center justify-end w-full max-w-2xl gap-4 md:gap-0 mt-12 z-10 relative">
+                                
+                                <!-- Connection Line Up to DB (Desktop) -->
+                                <div class="hidden md:block absolute right-[42px] top-[-48px] w-1 h-12 bg-stone-300 z-0"></div>
+
+                                <!-- Mobile Down Arrow from DB -->
+                                <div class="md:hidden my-2 arrow-down"></div>
+                                
+                                <!-- API (Clickable) -->
+                                <div onclick="showArchDetail('api')" id="box-api" class="arch-box w-32 h-24 bg-teal-50 border-2 border-teal-200 rounded-lg flex flex-col items-center justify-center text-center shadow-sm relative group z-20 md:mr-16">
+                                    <div class="text-teal-700 font-bold text-sm">API Gateway</div>
+                                    <div class="text-teal-500 text-[10px] mt-1">(FastAPI)</div>
+                                    <span class="absolute -bottom-6 text-[10px] text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Click info</span>
+                                </div>
+                                
+                                <!-- Arrow to Client -->
+                                <div class="hidden md:flex flex-1 items-center justify-center px-2 max-w-[100px]">
+                                    <div class="h-1 w-full bg-stone-300 relative"></div>
+                                    <div class="arrow-right"></div>
+                                </div>
+                                <!-- Mobile Down Arrow -->
+                                <div class="md:hidden my-2 arrow-down"></div>
+
+                                <!-- Client (Clickable) -->
+                                <div onclick="showArchDetail('frontend')" id="box-frontend" class="arch-box w-28 h-24 bg-blue-50 border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center text-center shadow-sm relative group z-20">
+                                    <div class="text-blue-700 font-bold text-sm">Client</div>
+                                    <div class="text-blue-500 text-[10px] mt-1">(Next.js)</div>
+                                    <span class="absolute -bottom-6 text-[10px] text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Click info</span>
+                                </div>
+                            </div>
+
+                        </div>
+                        <p class="text-center text-xs text-stone-400 mt-2">Click on any architecture block to view technical details.</p>
+                    </div>
+
+                    <!-- Detail Panel -->
+                    <div id="arch-detail-panel" class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 h-full flex flex-col justify-center transition-all duration-300">
+                        <div class="text-center text-stone-400 flex flex-col items-center">
+                            <span class="text-4xl block mb-2 opacity-50">👆</span>
+                            <p class="text-sm">Select a component from the diagram to view its tech stack and specifications.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showArchDetail(id) {
+            const component = appData.architecture.components.find(c => c.id === id);
+            const panel = document.getElementById('arch-detail-panel');
+
+            // Remove active classes
+            document.querySelectorAll('.arch-box').forEach(el => {
+                el.classList.remove('ring-2', 'ring-offset-2', 'ring-teal-400', 'transform', 'scale-105');
+            });
+
+            // Add active class to selected
+            const selectedBox = document.getElementById(`box-${id}`);
+            if (selectedBox) selectedBox.classList.add('ring-2', 'ring-offset-2', 'ring-teal-400', 'transform', 'scale-105');
+
+            if (component) {
+                panel.innerHTML = `
+                    <div class="animate-fade-in-up">
+                        <h3 class="text-xl font-bold text-slate-800 mb-1 border-b border-stone-100 pb-2">${component.label}</h3>
+                        <div class="mt-4 mb-4">
+                            <span class="text-xs font-bold text-stone-400 uppercase tracking-wide">Technology</span>
+                            <div class="inline-block bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded ml-2 font-mono font-semibold">${component.tech}</div>
+                        </div>
+                        <div class="mb-4">
+                             <span class="text-xs font-bold text-stone-400 uppercase tracking-wide">Function</span>
+                             <p class="text-stone-600 leading-relaxed text-sm mt-1 bg-stone-50 p-3 rounded border border-stone-100">${component.desc}</p>
+                        </div>
+                        <div class="border-t border-stone-100 pt-4 mt-auto">
+                            <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2 flex items-center">
+                                <span class="text-teal-500 mr-1">🛡️</span> Security Note
+                            </h4>
+                            <p class="text-xs text-stone-500">Includes robust error handling, input validation, and rate limiting to prevent abuse.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // --- Tab: Logic (Schema & ETL) ---
+        function renderLogic(container) {
+            container.innerHTML = `
+                <div class="mb-8 animate-fade-in-up">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Core Logic & Data Model</h2>
+                    <p class="text-stone-600 max-w-3xl">
+                        The data model is built for flexibility using PostgreSQL's <code>JSONB</code> capabilities to handle diverse event metadata. The ETL process ensures data integrity through a strict normalization phase.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in-up">
+                    <!-- Schema Visualization -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-slate-700">Database Schema</h3>
+                        <div class="bg-stone-100 p-6 rounded-xl border border-stone-200 relative min-h-[300px]">
+                            <!-- Events Table -->
+                            <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-teal-500 mb-6 w-5/6 relative z-10">
+                                <h4 class="font-bold text-slate-800 border-b border-stone-100 pb-2 mb-2 flex justify-between">
+                                    Events Table
+                                    <span class="text-xs text-stone-400 font-normal self-center">Core Entity</span>
+                                </h4>
+                                <ul class="text-xs text-stone-600 font-mono space-y-1.5">
+                                    <li class="flex justify-between"><span>id</span> <span class="text-stone-400">UUID (PK)</span></li>
+                                    <li class="flex justify-between"><span>start_time</span> <span class="text-stone-400">Timestamp UTC</span></li>
+                                    <li class="flex justify-between"><span>type</span> <span class="text-stone-400">Enum</span></li>
+                                    <li class="flex justify-between"><span>metadata</span> <span class="text-teal-600 font-bold">JSONB</span></li>
+                                </ul>
+                            </div>
+
+                            <!-- Connector Lines (CSS) -->
+                            <div class="absolute left-8 top-[140px] w-0.5 h-12 bg-stone-300"></div>
+                            <div class="absolute left-8 top-[188px] w-8 h-0.5 bg-stone-300"></div>
+
+                            <!-- Resources Table -->
+                            <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-indigo-500 mb-6 w-5/6 ml-auto relative z-10">
+                                <h4 class="font-bold text-slate-800 border-b border-stone-100 pb-2 mb-2 flex justify-between">
+                                    Resources
+                                    <span class="text-xs text-stone-400 font-normal self-center">Archive</span>
+                                </h4>
+                                <ul class="text-xs text-stone-600 font-mono space-y-1.5">
+                                    <li class="flex justify-between"><span>id</span> <span class="text-stone-400">UUID (PK)</span></li>
+                                    <li class="flex justify-between"><span>event_id</span> <span class="text-indigo-600 font-bold">FK (Events)</span></li>
+                                    <li class="flex justify-between"><span>url</span> <span class="text-stone-400">String</span></li>
+                                </ul>
+                            </div>
+
+                            <!-- Users Table (Separate) -->
+                            <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-amber-500 w-5/6 relative z-10">
+                                <h4 class="font-bold text-slate-800 border-b border-stone-100 pb-2 mb-2 flex justify-between">
+                                    Users
+                                    <span class="text-xs text-stone-400 font-normal self-center">Accounts</span>
+                                </h4>
+                                <ul class="text-xs text-stone-600 font-mono space-y-1.5">
+                                    <li class="flex justify-between"><span>id</span> <span class="text-stone-400">UUID (PK)</span></li>
+                                    <li class="flex justify-between"><span>email</span> <span class="text-stone-400">String</span></li>
+                                    <li class="flex justify-between"><span>preferences</span> <span class="text-teal-600 font-bold">JSONB</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ETL & Security Strategy -->
+                    <div class="space-y-8">
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-700 mb-4">ETL Pipeline Steps</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm shadow-sm">1</div>
+                                    <div class="ml-4 bg-white p-3 rounded-lg border border-stone-100 shadow-sm w-full">
+                                        <h4 class="text-sm font-bold text-slate-800">Ingestion (Collector)</h4>
+                                        <p class="text-xs text-stone-500 mt-1">Orchestrator triggers periodic fetches. Uses exponential backoff for 429 errors.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm shadow-sm">2</div>
+                                    <div class="ml-4 bg-white p-3 rounded-lg border border-stone-100 shadow-sm w-full">
+                                        <h4 class="text-sm font-bold text-slate-800">Normalization</h4>
+                                        <p class="text-xs text-stone-500 mt-1">Converts all times to UTC. Maps tags (e.g., "bin-exp" -> "Pwn"). Deduplicates using hash(name+date).</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm shadow-sm">3</div>
+                                    <div class="ml-4 bg-white p-3 rounded-lg border border-stone-100 shadow-sm w-full">
+                                        <h4 class="text-sm font-bold text-slate-800">Storage</h4>
+                                        <p class="text-xs text-stone-500 mt-1">Upsert strategy: <code>ON CONFLICT DO UPDATE</code>. Keeps data fresh without duplicates.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-red-50 p-6 rounded-xl border border-red-100">
+                            <h3 class="text-lg font-semibold text-red-800 mb-3 flex items-center">
+                                <span class="mr-2">🛡️</span> SecOps Checklist
+                            </h3>
+                            <ul class="space-y-2">
+                                <li class="flex items-center text-sm text-red-900/80">
+                                    <input type="checkbox" checked disabled class="mr-3 h-4 w-4 text-red-600 rounded bg-red-100 border-red-300 focus:ring-red-500">
+                                    Prevent SSRF (Validate all user URLs)
+                                </li>
+                                <li class="flex items-center text-sm text-red-900/80">
+                                    <input type="checkbox" checked disabled class="mr-3 h-4 w-4 text-red-600 rounded bg-red-100 border-red-300 focus:ring-red-500">
+                                    Secrets Management (No keys in Git)
+                                </li>
+                                <li class="flex items-center text-sm text-red-900/80">
+                                    <input type="checkbox" checked disabled class="mr-3 h-4 w-4 text-red-600 rounded bg-red-100 border-red-300 focus:ring-red-500">
+                                    Rate Limiting (Prevent DoS on exports)
+                                </li>
+                                <li class="flex items-center text-sm text-red-900/80">
+                                    <input type="checkbox" checked disabled class="mr-3 h-4 w-4 text-red-600 rounded bg-red-100 border-red-300 focus:ring-red-500">
+                                    Sanitize HTML (XSS prevention)
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Tab: Roadmap ---
+        function renderRoadmap(container) {
+            container.innerHTML = `
+                <div class="mb-8 animate-fade-in-up">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">MVP Roadmap (4 Weeks)</h2>
+                    <p class="text-stone-600 max-w-3xl">
+                        A pragmatic execution plan to move from zero to a functional MVP in one month. Each week targets specific milestones to ensure continuous delivery of value.
+                    </p>
+                </div>
+
+                <div class="space-y-6 animate-fade-in-up">
+                    ${appData.roadmap.map((week, index) => `
+                        <div class="group relative pl-8 pb-1 last:pb-0 border-l-2 border-stone-200 last:border-0 timeline-node">
+                            <!-- Bullet -->
+                            <div class="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-teal-500 group-hover:bg-teal-500 transition-colors z-10"></div>
+                            
+                            <!-- Content -->
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 group-hover:shadow-md transition-all cursor-default relative top-[-10px] hover:border-teal-200">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+                                    <h3 class="text-lg font-bold text-slate-800">${week.week}: ${week.title}</h3>
+                                    <span class="text-xs font-semibold px-2 py-1 bg-stone-100 text-stone-600 rounded mt-2 sm:mt-0 group-hover:bg-teal-50 group-hover:text-teal-700 transition-colors">Sprint ${index + 1}</span>
+                                </div>
+                                <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    ${week.tasks.map(task => `
+                                        <li class="flex items-center text-sm text-stone-600">
+                                            <span class="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2 flex-shrink-0"></span>
+                                            ${task}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="mt-8 bg-indigo-50 p-6 rounded-xl border border-indigo-100 text-center animate-fade-in-up">
+                    <h3 class="text-lg font-semibold text-indigo-900">Future Integrations (Post-MVP)</h3>
+                    <div class="flex flex-wrap justify-center gap-4 mt-4">
+                         <span class="px-3 py-1 bg-white text-indigo-700 text-xs font-medium rounded-full shadow-sm border border-indigo-100">Discord Bot</span>
+                         <span class="px-3 py-1 bg-white text-indigo-700 text-xs font-medium rounded-full shadow-sm border border-indigo-100">Multi-user Teams</span>
+                         <span class="px-3 py-1 bg-white text-indigo-700 text-xs font-medium rounded-full shadow-sm border border-indigo-100">Full Text Search</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNav();
+            renderContent();
+        });
+
+    </script>
+</body>
+
+</html>
