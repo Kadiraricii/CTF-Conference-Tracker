@@ -32,15 +32,48 @@ def trigger_ingest():
     from src.app.core.config import settings
 
     async def _trigger():
-        redis = await create_pool(
-            RedisSettings(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-        )
-        job = await redis.enqueue_job("ingest_ctftime_events", 50)
-        print("Enqueued job:", job.job_id)
+        redis = await create_pool(RedisSettings(host=settings.REDIS_HOST, port=settings.REDIS_PORT))
+        await redis.enqueue_job('ingest_ctftime_events', limit=50)
+        print("Job 'ingest_ctftime_events' enqueued successfully.")
         await redis.close()
-
+            
     asyncio.run(_trigger())
 
+@cli.command()
+def self_check():
+    """Perform a system-wide self check and exit with status code."""
+    from src.app.services.health import check_health_status
+    import sys
+    import json
+    
+    async def _check():
+        print("Running Self-Check...")
+        result = await check_health_status()
+        print(json.dumps(result, indent=2))
+        
+        if result["overall"] != "PASS":
+            sys.exit(1)
+        else:
+            sys.exit(0)
+
+
+    asyncio.run(_check())
+
+@cli.command()
+def test():
+    """Run automated tests using pytest."""
+    import subprocess
+    import sys
+    
+    print("Running Auto-Tests...")
+    # Run pytest with logical flags
+    # -v: verbose
+    # -p no:warnings: suppress deprecation warnings for cleaner output
+    result = subprocess.run(["pytest", "-v", "-p", "no:warnings"], cwd=".")
+    if result.returncode != 0:
+        sys.exit(1)
+    else:
+        sys.exit(0)
 
 if __name__ == "__main__":
     cli()
