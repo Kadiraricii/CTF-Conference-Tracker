@@ -51,10 +51,33 @@ cd CTF-Conference-Tracker
 cp .env.example .env
 ```
 
-### 2. Çalıştırma
+### 2. Çalıştırma (Running)
+
+#### 🐳 Seçenek A: Docker (Önerilen)
+Sistemi izole bir şekilde çalıştırmak için:
 ```bash
 docker-compose -f deploy/docker-compose.yml up --build -d
 ```
+
+#### 🐍 Seçenek B: Manuel Kurulum (Local)
+Geliştirme yapmak veya Docker kullanmadan çalıştırmak için:
+
+1. **Sanal Ortam (Opsiyonel):**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # Mac/Linux
+   # venv\Scripts\activate   # Windows
+   ```
+
+2. **Bağımlılıkları Yükle:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Uygulamayı Başlat:**
+   ```bash
+   uvicorn src.main:app --reload
+   ```
 
 ### 3. Erişim
 | Arayüz | URL | Özellik |
