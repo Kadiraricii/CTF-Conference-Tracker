@@ -50,6 +50,7 @@ jobs:
       run: |
         pip-audit
 
-    - name: Run Tests
-      run: |
-        pytest -v
+      - name: Run Tests
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          pytest -v
