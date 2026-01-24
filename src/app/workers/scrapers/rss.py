@@ -2,7 +2,6 @@ import httpx
 import logging
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
-from src.app.workers.scrapers.ctftime import CTFTimeScraper # Reuse normalize/notify logic if possible?
 # Actually, better to inherit BaseScraper and reuse a similar save logic or abstract it.
 from src.app.workers.scrapers import BaseScraper
 from src.app.db.models import Event
