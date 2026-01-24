@@ -1,9 +1,8 @@
-import pytest
 import pytest_asyncio
 from typing import AsyncGenerator
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from src.app.db.session import Base, get_db
+from src.app.db.session import get_db
 from src.app.core.config import settings
 from src.main import app
 
@@ -20,8 +19,6 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     Transaction is rolled back after test.
     """
     # Create engine specifically for testing to avoid loop sharing issues
-    from src.app.core.config import settings
-    from sqlalchemy.ext.asyncio import create_async_engine
     
     test_engine = create_async_engine(
         str(settings.DATABASE_URI),
