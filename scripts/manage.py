@@ -7,7 +7,7 @@ from src.app.db.session import engine, Base
 def cli():
     pass
 
-@cli.command()
+@cli.command(name="init_db")
 def init_db():
     """Create database tables."""
     async def _init():
@@ -18,13 +18,13 @@ def init_db():
     asyncio.run(_init())
 
 
-@cli.command()
+@cli.command(name="run_worker")
 def run_worker():
     """Run the user-facing worker (wrapper around arq)."""
     import subprocess
     subprocess.run(["arq", "src.app.workers.tasks.WorkerSettings"])
 
-@cli.command()
+@cli.command(name="trigger_ingest")
 def trigger_ingest():
     """Trigger the CTFtime ingestion task via Redis."""
     from arq import create_pool
@@ -35,11 +35,11 @@ def trigger_ingest():
         redis = await create_pool(RedisSettings(host=settings.REDIS_HOST, port=settings.REDIS_PORT))
         await redis.enqueue_job('ingest_ctftime_events', limit=50)
         print("Job 'ingest_ctftime_events' enqueued successfully.")
-        await redis.close()
+        await redis.aclose()
             
     asyncio.run(_trigger())
 
-@cli.command()
+@cli.command(name="self_check")
 def self_check():
     """Perform a system-wide self check and exit with status code."""
     from src.app.services.health import check_health_status
