@@ -13,6 +13,31 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12"]
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
     steps:
     - uses: actions/checkout@v4
 
@@ -57,9 +82,11 @@ jobs:
         POSTGRES_USER: test_user
         POSTGRES_PASSWORD: test_password
         POSTGRES_DB: test_db
+        DATABASE_URI: postgresql+asyncpg://test_user:test_password@localhost:5432/test_db
         REDIS_HOST: localhost
         REDIS_PORT: 6379
         TELEGRAM_BOT_TOKEN: test-bot-token
       run: |
         export PYTHONPATH=$PYTHONPATH:.
         pytest -v
+
