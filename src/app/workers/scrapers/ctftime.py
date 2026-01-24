@@ -1,7 +1,6 @@
-from datetime import datetime, timezone
+from datetime import datetime
 import httpx
 from sqlalchemy.future import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.db.session import AsyncSessionLocal
 from src.app.db.models import Event
 from src.app.workers.scrapers import BaseScraper
