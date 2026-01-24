@@ -1,6 +1,6 @@
 import httpx
 import logging
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from datetime import datetime, timezone
 
 # Actually, better to inherit BaseScraper and reuse a similar save logic or abstract it.
