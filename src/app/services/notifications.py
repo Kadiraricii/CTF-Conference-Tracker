@@ -6,6 +6,7 @@ from src.app.db.models import Event
 
 logger = logging.getLogger(__name__)
 
+
 class NotificationService:
     TELEGRAM_API_URL = "https://api.telegram.org/bot"
 
@@ -21,9 +22,9 @@ class NotificationService:
             "chat_id": chat_id,
             "text": message,
             "parse_mode": "HTML",
-            "disable_web_page_preview": True
+            "disable_web_page_preview": True,
         }
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(url, json=payload, timeout=10.0)
@@ -45,13 +46,13 @@ class NotificationService:
         # Prepare Message
         # Telegram has a limit (4096 chars), so keep it brief or split.
         # For now, we assume batch size isn't huge (50 items) but we should be careful.
-        
+
         header = f"🚨 <b>{len(events)} New CTF Events Found!</b>\n\n"
         body = ""
-        for event in events[:10]: # Limit to top 10 to avoid spamming/limit issues
+        for event in events[:10]:  # Limit to top 10 to avoid spamming/limit issues
             start = event.start_time.strftime("%Y-%m-%d")
             body += f"🔹 <a href='{event.url}'>{event.title}</a> ({start})\n"
-        
+
         if len(events) > 10:
             body += f"\n<i>...and {len(events) - 10} more.</i>"
 

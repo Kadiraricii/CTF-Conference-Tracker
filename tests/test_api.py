@@ -1,6 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
+
 @pytest.mark.asyncio
 async def test_health_check(client: AsyncClient):
     response = await client.get("/health")
@@ -20,6 +21,7 @@ async def test_read_events(client: AsyncClient):
     data = response.json()
     assert isinstance(data, list)
     # Length depends on DB state, but structure should match
+
 
 @pytest.mark.asyncio
 async def test_read_calendar(client: AsyncClient):

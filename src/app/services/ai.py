@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class AIService:
     # Basic Keywords for Heuristic "AI"
     KEYWORDS = {
@@ -10,7 +11,7 @@ class AIService:
         "pwn": ["pwn", "overflow", "rop", "heap", "binary", "exploit"],
         "forensics": ["forensics", "stegano", "pcap", "network analysis"],
         "cloud": ["aws", "azure", "gcp", "cloud", "kubernetes", "docker"],
-        "ml": ["machine learning", "adversarial", "ai", "model"]
+        "ml": ["machine learning", "adversarial", "ai", "model"],
     }
 
     @classmethod
@@ -30,5 +31,5 @@ class AIService:
         # 2. LLM Placeholder (If Key exists)
         # if settings.OPENAI_API_KEY:
         #    tags.update(await cls.call_llm(text))
-        
+
         return list(tags)

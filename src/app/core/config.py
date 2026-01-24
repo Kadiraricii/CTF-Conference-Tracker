@@ -3,11 +3,12 @@ from typing import List, Union
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import PostgresDsn, validator
 
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CTF & Conference Tracker"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str
-    
+
     # Database
     POSTGRES_SERVER: str
     POSTGRES_USER: str
@@ -38,5 +39,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", case_sensitive=True, extra="ignore"
     )
+
 
 settings = Settings()

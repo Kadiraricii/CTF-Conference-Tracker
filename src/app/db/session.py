@@ -6,7 +6,7 @@ from src.app.core.config import settings
 # Create Async Engine
 engine = create_async_engine(
     str(settings.DATABASE_URI),
-    echo=True, # Set to False in production
+    echo=True,  # Set to False in production
     future=True,
 )
 
@@ -19,6 +19,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 Base = declarative_base()
+
 
 async def get_db():
     async with AsyncSessionLocal() as session:

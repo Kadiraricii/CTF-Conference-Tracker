@@ -2,9 +2,10 @@ import logging
 from sqlalchemy import text
 from src.app.db.session import AsyncSessionLocal
 from src.app.core.config import settings
-from redis import asyncio as aioredis # Use async redis
+from redis import asyncio as aioredis  # Use async redis
 
 logger = logging.getLogger(__name__)
+
 
 async def check_health_status() -> dict:
     """
@@ -16,9 +17,9 @@ async def check_health_status() -> dict:
         "database": "FAIL",
         "redis": "FAIL",
         "data": "FAIL",
-        "overall": "FAIL"
+        "overall": "FAIL",
     }
-    
+
     # 1. Database Check
     try:
         async with AsyncSessionLocal() as session:
@@ -34,7 +35,9 @@ async def check_health_status() -> dict:
 
     # 2. Redis Check
     try:
-        redis = aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}")
+        redis = aioredis.from_url(
+            f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}"
+        )
         await redis.ping()
         await redis.close()
         status["redis"] = "PASS"
@@ -45,5 +48,5 @@ async def check_health_status() -> dict:
     # Overall Logic
     if status["database"].startswith("PASS") and status["redis"].startswith("PASS"):
         status["overall"] = "PASS"
-    
+
     return status
