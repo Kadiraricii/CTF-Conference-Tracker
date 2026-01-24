@@ -9,6 +9,19 @@
 
 ---
 
+## 📋 İçindekiler (Documentation Index)
+1.  [Proje Hakkında](#-proje-hakkında-about)
+2.  [Mimari & Teknoloji](#-nasıl-çalışır-architecture)
+3.  [Hızlı Başlangıç (Kurulum)](#-hızlı-başlangıç-quick-start)
+4.  [İlk Veri Yükleme](#-ilk-kurulum--veri-yükleme-first-run)
+5.  [Proje Yapısı](#-proje-yapısı-project-structure)
+6.  [CI/CD & Kalite](#%EF%B8%8F-cicd--kalite-quality-assurance)
+
+7.  [Hata Bildirimi (Security)](docs/SECURITY.md)
+8.  [Yol Haritası (Roadmap)](docs/ROADMAP.md)
+
+---
+
 ## 🌌 Dynamic User Experience (yeni)
 
 CyberTracker, sıradan bir liste görünümünün ötesine geçerek, siber güvenlik uzmanlarına **"Premium"** bir deneyim sunar.
@@ -64,6 +77,24 @@ docker-compose up --build -d
 # 4. Logları izleyin
 docker-compose logs -f
 ```
+
+### 🏁 İlk Kurulum & Veri Yükleme (First Run)
+Veritabanı ilk kez oluşturulduğunda boştur. İçerikleri çekmek için şu adımları izleyin:
+
+1.  **Tabloların Oluştuğundan Emin Olun:**
+    Eğer loglarda `relation "events" does not exist` hatası görürseniz:
+    ```bash
+    # Migrasyon dosyasını oluştur ve uygula
+    docker-compose exec backend alembic revision --autogenerate -m "Initial_tables"
+    docker-compose exec backend alembic upgrade head
+    ```
+
+2.  **Verileri Çekin (Data Seeding):**
+    CTFtime ve diğer kaynaklardan veri çekmek için:
+    ```bash
+    docker-compose exec backend python scripts/manage.py trigger_ingest
+    ```
+    *Bu işlem arka planda çalışır ve 1-2 dakika içinde arayüzde etkinlikler görünmeye başlar.*
 
 ### 🐍 Seçenek B: Manuel Kurulum (Local Development)
 
