@@ -8,10 +8,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 # Import Project Settings & Models
-import os
 import sys
-sys.path.append(os.getcwd())
+# Path manipulation removed. Ensure PYTHONPATH is set if running outside installed package.
 try:
+
     from src.app.core.config import settings
     from src.app.db.base import Base # Contains all models
 except ImportError as e:
