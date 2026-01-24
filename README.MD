@@ -42,49 +42,93 @@ CyberTracker, sıradan bir liste görünümünün ötesine geçerek, siber güve
 
 ## 🚀 Hızlı Başlangıç (Quick Start)
 
-Proje **Docker** ile saniyeler içinde ayağa kalkar.
+### Ön Hazırlık (Prerequisites)
+*   Python 3.11+
+*   Docker & Docker Compose (Önerilen)
+*   PostgreSQL & Redis (Manuel kurulum için)
 
-### 1. Kurulum
+### 🐳 Seçenek A: Docker (Önerilen)
+Proje tek komutla tüm bağımlılıklarıyla ayağa kalkar.
+
 ```bash
+# 1. Projeyi klonlayın
 git clone https://github.com/your-username/CTF-Conference-Tracker.git
 cd CTF-Conference-Tracker
+
+# 2. Örnek environment dosyasını kopyalayın
 cp .env.example .env
+
+# 3. Docker Compose ile başlatın
+docker-compose up --build -d
+
+# 4. Logları izleyin
+docker-compose logs -f
 ```
 
-### 2. Çalıştırma (Running)
+### 🐍 Seçenek B: Manuel Kurulum (Local Development)
 
-#### 🐳 Seçenek A: Docker (Önerilen)
-Sistemi izole bir şekilde çalıştırmak için:
+1.  **Sanal Ortam Oluşturun:**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+2.  **Bağımlılıkları Yükleyin:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3.  **Çevresel Değişkenleri Ayarlayın:**
+    `.env` dosyasını düzenleyin ve `SECRET_KEY`'i güncelleyin.
+    ```bash
+    cp .env.example .env
+    ```
+
+4.  **Veritabanı Migrasyonlarını Çalıştırın:**
+    ```bash
+    alembic upgrade head
+    ```
+
+5.  **Uygulamayı Başlatın:**
+    ```bash
+    uvicorn src.main:app --reload
+    ```
+
+### 🧪 Testleri Çalıştırma (Running Tests)
+Unit testler `pytest` ile koşturulur.
 ```bash
-docker-compose -f deploy/docker-compose.yml up --build -d
+pytest
 ```
 
-#### 🐍 Seçenek B: Manuel Kurulum (Local)
-Geliştirme yapmak veya Docker kullanmadan çalıştırmak için:
+### 🛡️ Diğer Komutlar
+*   **Linting:** `ruff check .`
+*   **Security Audit:** `bandit -r src` ve `pip-audit`
+*   **Migrations:** `alembic revision --autogenerate -m "mesaj"`
 
-1. **Sanal Ortam (Opsiyonel):**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # Mac/Linux
-   # venv\Scripts\activate   # Windows
-   ```
-
-2. **Bağımlılıkları Yükle:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Uygulamayı Başlat:**
-   ```bash
-   uvicorn src.main:app --reload
-   ```
-
-### 3. Erişim
-| Arayüz | URL | Özellik |
-| :--- | :--- | :--- |
-| **Dynamic Dashboard** | `http://localhost:8000` | 🎨 Cyber UI, Animations, TR/EN Support |
-| **API Docs** | `http://localhost:8000/docs` | 📄 Swagger / OpenAPI |
-| **Calendar Feed** | `http://localhost:8000/calendar/ctf.ics` | 📅 iCal Subscription |
+### 📂 Proje Yapısı (Project Structure)
+```
+.
+├── .github/            # CI/CD Workflows
+├── alembic/            # Database Migrations
+├── deploy/             # Deployment Configs
+├── docs/               # Architecture & Plans
+├── researches/         # Deep Research (AI Agents)
+├── scripts/            # Helper Scripts
+├── src/
+│   ├── app/
+│   │   ├── api/        # REST Endpoints
+│   │   ├── core/       # Config & Security
+│   │   ├── db/         # Models & Sessions
+│   │   ├── services/   # Business Logic
+│   │   └── workers/    # Background Tasks
+│   └── main.py         # App Entrypoint
+├── tests/              # Unit Tests
+├── .dockerignore       # Docker Build Exclusion
+├── .env.example        # Env Template
+├── docker-compose.yml  # Docker Orchestration
+├── Dockerfile          # App Container
+└── requirements.txt    # Pinned Dependencies
+```
 
 ---
 
@@ -111,6 +155,20 @@ graph LR
 *   `src/app/services/`: **Intelligence** (AI, Notifications).
 *   `tests/`: **Automation** (Pytest).
 *   `docs/`: **Audit & Plans**.
+
+---
+
+## 🛡️ CI/CD & Kalite (Quality Assurance)
+
+Proje, yazılım kalitesini ve güvenliğini korumak için **GitHub Actions** üzerinde çalışan otomatik bir pipeline'a sahiptir.
+
+*   **Workflow:** `.github/workflows/ci.yml` her `push` ve `pull_request` işleminde tetiklenir.
+*   **Otomatik Kontroller:**
+    *   ✨ **Linting & Formatting:** `ruff` kullanılarak Python kod standartları ve biçimlendirmesi denetlenir.
+    *   🔒 **Güvenlik (Security):**
+        *   `bandit`: Kaynak kodundaki potansiyel güvenlik açıklarını (hardcoded secrets, unsafe functions) tarar.
+        *   `pip-audit`: Bağımlılık paketlerindeki bilinen zafiyetleri (CVE) kontrol eder.
+    *   🧪 **Otomasyon Testleri:** `pytest` ile birim testler koşturulur.
 
 ---
 
