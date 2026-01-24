@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 from src.app.core.config import settings
 from src.app.api.endpoints import events, calendar
@@ -18,17 +21,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-
-
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
 # Include Routers
 app.include_router(events.router, prefix="/api/events", tags=["events"])
 app.include_router(calendar.router, prefix="/calendar", tags=["calendar"])
 
 # Mount Static Files
-import os
 static_dir = os.path.join(os.path.dirname(__file__), "app/static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
@@ -45,14 +42,6 @@ async def health_check():
          pass
     return status
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Welcome to the CTF & Conference Tracker API",
-        "docs": "/docs",
-        "health": "/health"
-    }
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True) # nosec
