@@ -51,6 +51,15 @@ jobs:
         pip-audit
 
     - name: Run Tests
+      env:
+        SECRET_KEY: test-secret-key-for-ci-only
+        POSTGRES_SERVER: localhost
+        POSTGRES_USER: test_user
+        POSTGRES_PASSWORD: test_password
+        POSTGRES_DB: test_db
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+        TELEGRAM_BOT_TOKEN: test-bot-token
       run: |
-          export PYTHONPATH=$PYTHONPATH:.
-          pytest -v
+        export PYTHONPATH=$PYTHONPATH:.
+        pytest -v
